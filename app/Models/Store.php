@@ -9,12 +9,39 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\ContactMessage;
 
 class Store extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'user_id'];
+    protected $fillable = 
+        ['name', 
+        'slug', 
+        'user_id',
+        'description',
+        'address',
+        'whatsapp_number',
+        'facebook_url',
+        'instagram_url',
+        'logo_path',
+        'banner_path',
+        'contact_email',
+        'notify_new_order',
+        'payment_instructions',
+        'bank_name',
+        'bank_account',
+        'bank_cci',
+        'bank_holder',
+        'yape_qr_path',
+        'yape_phone',
+        'plin_qr_path',
+        'plin_phone',
+        ];
+
+    protected $casts = [
+        'notify_new_order' => 'boolean', 
+    ];
 
     public function user(): BelongsTo
     {
@@ -36,4 +63,9 @@ class Store extends Model
     public function orders():HasMany{
         return $this->hasMany(Order::class);
     }
+
+    public function contactMessages():HasMany{
+        return $this->hasMany(ContactMessage::class);
+    }
+
 }

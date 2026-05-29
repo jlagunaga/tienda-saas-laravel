@@ -1,22 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Gestionando: {{ $store->name }}
-            </h2>
-            <div class="flex space-x-8 -mb-px">
-                <a href="{{ route('stores.categories.index', $store) }}" class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('stores.categories.*') ? 'border-indigo-500 text-gray-900 focus:outline-none focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300' }}">
-                    {{ __('Categorías') }}
-                </a>
-                <a href="{{ route('stores.products.index', $store) }}" class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('stores.products.*') ? 'border-indigo-500 text-gray-900 focus:outline-none focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300' }}">
-                    {{ __('Productos') }}
-                </a>
-            </div>
-            <a href="{{ route('dashboard') }}" class="text-sm text-gray-600 hover:text-gray-900 underline">
-                &larr; Dashboard
-            </a>
-        </div>
-    </x-slot>
+<x-seller-store-header :store="$store" />
 
 
     <div class="py-12">
@@ -69,6 +52,9 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-gray-100">
+                            {{ $categories->links() }}
                         </div>
                     @endif
                 </div>

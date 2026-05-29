@@ -21,23 +21,45 @@
 
                 <form action="{{ route('public.checkout.process', $store) }}" method="POST" class="space-y-6">
                     @csrf
-                    <!-- Grupo Nombre -->
+                                        <!-- Grupo Nombre (Estilizado como Readonly) -->
                     <div class="space-y-2">
-                        <x-input-label for="name" :value="__('Nombre Completo')" class="text-xs uppercase tracking-wider text-slate-500 font-bold" />
-                        <x-text-input id="name" class="block w-full border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl py-2.5 px-4 text-sm shadow-sm" type="text" name="name" :value="old('name')" required placeholder="Ej: José María" />
+                        <x-input-label for="name" :value="__('Nombre Completo')" class="text-xs uppercase tracking-wider text-slate-400 font-bold" />
+                        <x-text-input id="name" class="block w-full bg-slate-50 border-slate-200 text-slate-500 rounded-xl py-2.5 px-4 text-sm shadow-sm cursor-not-allowed font-medium" type="text" name="name" :value="Auth::guard('customer')->user()->name" readonly />
                         <x-input-error :messages="$errors->get('name')" class="mt-2" />
                     </div>
                     
-                    <!-- Grupo Email -->
+                    <!-- Grupo Email (Estilizado como Readonly) -->
                     <div class="space-y-2">
-                        <x-input-label for="email" :value="__('Correo Electrónico')" class="text-xs uppercase tracking-wider text-slate-500 font-bold" />
-                        <x-text-input id="email" class="block w-full border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl py-2.5 px-4 text-sm shadow-sm" type="email" name="email" :value="old('email')" required placeholder="Ej: jose@hass.com" />
+                        <x-input-label for="email" :value="__('Correo Electrónico')" class="text-xs uppercase tracking-wider text-slate-400 font-bold" />
+                        <x-text-input id="email" class="block w-full bg-slate-50 border-slate-200 text-slate-500 rounded-xl py-2.5 px-4 text-sm shadow-sm cursor-not-allowed font-medium" type="email" name="email" :value="Auth::guard('customer')->user()->email" readonly />
                         <x-input-error :messages="$errors->get('email')" class="mt-2" />
                     </div>
+
+                    <!-- Grupo Celular -->
+                    <div class="space-y-2">
+                        <x-input-label for="phone" :value="__('Celular')" class="text-xs uppercase tracking-wider text-slate-500 font-bold" />
+                        <x-text-input id="phone" class="block w-full border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl py-2.5 px-4 text-sm shadow-sm" type="text" name="phone" :value="Auth::guard('customer')->user()->phone ?? old('phone')" placeholder="Ej: 999999999" />
+                        <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                    </div>
                     
-                    <button type="submit" class="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md shadow-indigo-100 mt-4">
+                    <!-- Grupo Direccion -->
+                    <div class="space-y-2">
+                        <x-input-label for="address" :value="__('Dirección')" class="text-xs uppercase tracking-wider text-slate-500 font-bold" />
+                        <x-text-input id="address" class="block w-full border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl py-2.5 px-4 text-sm shadow-sm" type="text" name="address" :value="Auth::guard('customer')->user()->address ?? old('address')" placeholder="Ej: Av. Principal 123" />
+                        <x-input-error :messages="$errors->get('address')" class="mt-2" />
+                    </div>
+                    
+                    <!-- Grupo Referencias -->
+                    <div class="space-y-2">
+                        <x-input-label for="references" :value="__('Referencias')" class="text-xs uppercase tracking-wider text-slate-500 font-bold" />
+                        <x-text-input id="references" class="block w-full border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl py-2.5 px-4 text-sm shadow-sm" type="text" name="references" :value="Auth::guard('customer')->user()->references ?? old('references')" placeholder="Ej: Cerca de la iglesia" />
+                        <x-input-error :messages="$errors->get('references')" class="mt-2" />
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md shadow-indigo-100 mt-6">
                         Confirmar Pedido
                     </button>
+
                 </form>
             </div>
 
@@ -54,7 +76,19 @@
                                 <span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-md">{{ $product->quantity }}x</span>
                                 <span class="text-sm font-medium text-slate-700 line-clamp-1">{{ $product->name }}</span>
                             </div>
-                            <span class="text-sm font-bold text-slate-800">${{ number_format($product->price * $product->quantity, 2) }}</span>
+                            @php
+                                $precioFinal = $product->price;
+                                if ($product->discount_percentage > 0) {
+                                    $precioFinal = $product->price * (1 - $product->discount_percentage / 100);
+                                }
+                            @endphp
+                            <div class="text-right">
+                                @if($product->discount_percentage > 0)
+                                    <span class="text-[10px] text-red-500 font-bold block leading-none mb-1">-{{ $product->discount_percentage }}% aplicado</span>
+                                @endif
+                                <span class="text-sm font-bold text-slate-800">${{ number_format($precioFinal * $product->quantity, 2) }}</span>
+                            </div>
+
                         </div>
                     @endforeach
                 </div>

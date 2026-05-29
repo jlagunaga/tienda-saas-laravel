@@ -1,22 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Gestionando: {{ $store->name }}
-            </h2>
-            <div class="flex space-x-8 -mb-px">
-                <a href="{{ route('stores.categories.index', $store) }}" class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('stores.categories.*') ? 'border-indigo-500 text-gray-900 focus:outline-none focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300' }}">
-                    {{ __('Categorías') }}
-                </a>
-                <a href="{{ route('stores.products.index', $store) }}" class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('stores.products.*') ? 'border-indigo-500 text-gray-900 focus:outline-none focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300' }}">
-                    {{ __('Productos') }}
-                </a>
-            </div>
-            <a href="{{ route('dashboard') }}" class="text-sm text-gray-600 hover:text-gray-900 underline">
-                &larr; Dashboard
-            </a>
-        </div>
-    </x-slot>
+    
+ <x-seller-store-header :store="$store" />
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -34,6 +18,20 @@
                             <p class="text-gray-500">Aún no tienes productos en esta tienda.</p>
                         </div>
                     @else
+                    <form action="{{ route('stores.products.index', $store) }}" method="GET" class="mb-8 max-w-xl flex gap-2">
+                        <div class="relative flex-1">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <input type="text" name="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition shadow-sm" placeholder="Buscar productos en {{ $store->name }}...">
+                        </div>
+                        <button type="submit" class="px-6 py-3 border border-transparent text-sm font-black rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-transform active:scale-95">
+                            Buscar
+                        </button>
+                    </form>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($products as $product)
                                 <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
@@ -48,13 +46,37 @@
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <h4 class="font-bold text-lg text-gray-800">{{ $product->name }}</h4>
-                                                <p class="text-xs text-indigo-600 font-semibold uppercase">{{ $product->category->name }}</p>
+                                                <p class="text-xs text-indigo-600 font-semibold uppercase">{{ $product->category?->name ?? 'Sin categoría' }}</p>
                                             </div>
-                                            <span class="font-bold text-lg text-green-600">${{ $product->price }}</span>
+                                            @if($product->discount_percentage > 0)
+                                                <div class="flex flex-col">
+                                                    <!-- Precio Original Tachado -->
+                                                    <span class="text-xs text-gray-400 line-through">${{ number_format($product->price, 2) }}</span>
+                                                    <!-- Nuevo Precio Calculado -->
+                                                    <span class="text-sm font-bold text-gray-900">
+                                                        ${{ number_format($product->price * (1 - $product->discount_percentage / 100), 2) }}
+                                                    </span>
+                                                    <!-- Etiqueta Roja -->
+                                                    <span class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded w-max mt-1 border border-red-200">
+                                                        -{{ $product->discount_percentage }}% OFF
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <span class="text-sm font-medium text-gray-900">${{ number_format($product->price, 2) }}</span>
+                                            @endif
+
                                         </div>
                                         <p class="text-sm text-gray-500 mt-2 line-clamp-2">{{ $product->description }}</p>
                                         <div class="mt-4 flex justify-between items-center pt-4 border-t">
-                                            <span class="text-xs text-gray-500">Stock: {{ $product->stock }}</span>
+                                            
+                                            @if($product->stock == 0)
+                                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-black rounded-md">AGOTADO</span>
+                                            @elseif($product->stock <= 5)
+                                                <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-black rounded-md mb-2">Poco Stock: {{ $product->stock }}</span>
+                                            @else
+                                                <span class="text-xs text-gray-500">Stock: {{ $product->stock }}</span>
+                                            @endif
+
                                             <div class="flex space-x-2">
                                                 <a href="{{route('stores.products.edit', [$store, $product])}}" class="inline-flex items-center px-2.5 py-1.5 bg-white border border-gray-300 rounded text-xs font-semibold text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
                                                     Editar
@@ -71,6 +93,9 @@
                                     </div>
                                 </div>
                             @endforeach
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-gray-100">
+                            {{ $products->links() }}
                         </div>
                     @endif
                 </div>

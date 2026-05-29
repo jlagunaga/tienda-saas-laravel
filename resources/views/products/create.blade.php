@@ -47,6 +47,17 @@
                                 <x-input-error :messages="$errors->get('stock')" class="mt-2" />
                             </div>
                         </div>
+                        <!-- Input del Descuento (%) -->
+                        <div class="mb-4">
+                            <label for="discount_percentage" class="block text-sm font-medium text-gray-700">Descuento (%) - Opcional</label>
+                            <div class="relative mt-1 border border-gray-300 rounded-md shadow-sm">
+                                <input type="number" name="discount_percentage" id="discount_percentage" min="0" max="100" class="block w-full rounded-md border-gray-300 pl-3 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2" placeholder="Ej: 15" value="{{ old('discount_percentage', $product->discount_percentage ?? 0) }}">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span class="text-gray-500 sm:text-sm font-bold">%</span>
+                                </div>
+                            </div>
+                            <x-input-error :messages="$errors->get('discount_percentage')" class="mt-2" />
+                        </div>
 
                         <!-- Descripción -->
                         <div>

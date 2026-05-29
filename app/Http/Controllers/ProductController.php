@@ -14,8 +14,16 @@ use Illuminate\Support\Facades\Storage;
 class ProductController extends Controller
 {
     //listado
-    public function index(Store $store){
-     $products = $store->products;
+    public function index(Request $request, Store $store){
+        if ($store->user_id !== $request->user()->id) { abort(403); }
+        $products = $store->products()->paginate(10);
+        if($request->has('search') && $request->search != ''){
+            // usamos where (function(query)... ) para evitar problemas de orden de los operadores logicos en orwhere
+            $products = $store->products()->where(function($query) use ($request){
+                $query->where('name','like','%'.$request->search.'%')
+                      ->orWhere('description','like','%'.$request->search.'%');
+            })->latest()->paginate(10);
+        }
      return view('products.index', compact('store','products'));   
     }
     // crear
@@ -34,6 +42,7 @@ class ProductController extends Controller
             'stock' => 'required|numeric|min:0',
             'description' => 'string|nullable',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',// maximo 2MB
+            'discount_percentage' => 'nullable|integer|min:0|max:100',
         ]);
         // generar slug 
         $validate['slug'] = Str::slug($validate['name']);
@@ -61,8 +70,13 @@ class ProductController extends Controller
     }
 
     public function edit(Store $store, Product $product){
+        if($store->user_id !== Auth()->id()){
+            abort(403,'Unauthorized');
+        }
         $categories = $store->categories;
-        return view('products.edit', compact('store','product','categories'));
+        $reviews = $product->reviews()->latest()->paginate(10);
+
+        return view('products.edit', compact('store','product','categories','reviews'));
     }
 
     public function update(Store $store, Product $product, Request $request){
@@ -73,6 +87,7 @@ class ProductController extends Controller
             'stock' => 'required|numeric|min:0',
             'description' => 'string|nullable',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',// maximo 2MB
+            'discount_percentage' => 'nullable|integer|min:0|max:100',
         ]);
         // generar slug 
         $validated['slug'] = Str::slug($validated['name']);
@@ -88,5 +103,5 @@ class ProductController extends Controller
         $product->update($validated);
         return redirect()->route('stores.products.index',$store)->with('status','Producto actualizado exitosamente.');
     }
-
+    
 }

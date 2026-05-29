@@ -28,20 +28,26 @@
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center">
                 <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                <span class="ms-2 text-sm text-gray-600">{{ __('Recordar') }}</span>
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+        <div class="flex items-center justify-between mt-6">
+            <a class="text-sm text-indigo-600 hover:text-indigo-700 font-semibold no-underline hover:underline transition" href="{{ route('register') }}">
+                {{ __('Regístrate') }}
+            </a>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+            <div class="flex items-center gap-4">
+                @if (Route::has('password.request'))
+                    <a class="text-xs text-gray-500 hover:text-gray-800 transition no-underline" href="{{ route('password.request') }}">
+                        {{ __('¿Olvidaste tu clave?') }}
+                    </a>
+                @endif
+
+                <x-primary-button class="px-6 py-2.5 shadow-md shadow-indigo-100">
+                    {{ __('Entrar') }}
+                </x-primary-button>
+            </div>
         </div>
     </form>
 </x-guest-layout>

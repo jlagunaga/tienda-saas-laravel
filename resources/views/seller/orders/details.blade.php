@@ -28,7 +28,7 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <a href="{{ route('stores.orders.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1 mb-1 transition">
+                <a href="{{ route('stores.orders.index', $store) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1 mb-1 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -44,16 +44,25 @@
 
             <!-- Badge de Estado Dinámico -->
             <div class="flex items-center gap-3">
-                @if($order->status == 'pending')
+                @if($order->status == 'pending_payment')
                     <span class="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm">
-                        ● Pendiente
+                        ● Pendiente de Pago
                     </span>
-                @else
+                @elseif($order->status == 'paid')
+                    <span class="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm">
+                        ● Pagado
+                    </span>
+                @elseif($order->status == 'cancelled')
+                    <span class="px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm">
+                        ● Cancelado
+                    </span>
+                @elseif($order->status == 'completed')
                     <span class="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm">
                         ● Completado
                     </span>
                 @endif
             </div>
+
         </div>
     </x-slot>
 
@@ -132,33 +141,101 @@
                     </div>
 
                     <!-- Placeholder para Acciones Futuras -->
+                    <!-- Tarjeta de Acciones del Pedido -->
                     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200/60">
                         <h3 class="font-bold text-slate-800 mb-4">Acciones</h3>
                         
-                        @if($order->status == 'pending')
+                        @if($order->status == 'pending_payment')
                             <p class="text-slate-400 text-xs leading-relaxed mb-6">
-                                Una vez que hayas preparado el pedido, márcalo como completado para informar al sistema.
+                                Este pedido está pendiente de pago. Verifica haber recibido la transferencia o dinero en tus billeteras móviles antes de confirmar.
                             </p>
                             
-                            <form action="{{ route('stores.orders.complete', $order) }}" method="POST">
+                            <!-- Formulario de Confirmar Pago -->
+                            <form action="{{ route('stores.orders.confirm-payment', $order) }}" method="POST" class="space-y-4">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                                <div>
+                                    <label for="notes_confirm" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Notas de Pago (Opcional)</label>
+                                    <input type="text" id="notes_confirm" name="notes" placeholder="Ej: Verificado vía Yape, Op #5893" class="w-full text-xs rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 py-2.5 px-3">
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-100 transition-all active:scale-95">
+                                    Confirmar Pago (Descontar Stock)
+                                </button>
+                            </form>
+
+                            <!-- Formulario de Cancelar Orden -->
+                            <form action="{{ route('stores.orders.cancel', $order) }}" method="POST" class="space-y-4 mt-6 pt-6 border-t border-slate-100">
+                                @csrf
+                                @method('PATCH')
+                                <div>
+                                    <label for="notes_cancel" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Motivo de Cancelación (Opcional)</label>
+                                    <input type="text" id="notes_cancel" name="notes" placeholder="Ej: Cliente canceló el pedido" class="w-full text-xs rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 py-2.5 px-3">
+                                </div>
+                                <button type="submit" onclick="return confirm('¿Estás seguro de que deseas cancelar esta orden?')" class="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold text-sm transition-all active:scale-95">
+                                    Cancelar Pedido
+                                </button>
+                            </form>
+
+                        @elseif($order->status == 'paid')
+                            <p class="text-slate-400 text-xs leading-relaxed mb-6">
+                                El pago de este pedido ha sido confirmado. Una vez que hayas entregado o enviado los productos, márcalo como completado.
+                            </p>
+                            
+                            <!-- Formulario de Completar Orden -->
+                            <form action="{{ route('stores.orders.complete', $order) }}" method="POST" class="space-y-4">
+                                @csrf
+                                @method('PATCH')
+                                <div>
+                                    <label for="notes_complete" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Notas de Entrega (Opcional)</label>
+                                    <input type="text" id="notes_complete" name="notes" placeholder="Ej: Enviado por Olva Courier, Guía #12345" class="w-full text-xs rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 py-2.5 px-3">
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-100 transition-all active:scale-95">
                                     Marcar como Completado
                                 </button>
                             </form>
+
+                            <!-- Formulario de Cancelar Orden (Con reintegro automático) -->
+                            <form action="{{ route('stores.orders.cancel', $order) }}" method="POST" class="space-y-4 mt-6 pt-6 border-t border-slate-100">
+                                @csrf
+                                @method('PATCH')
+                                <div>
+                                    <label for="notes_cancel" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Motivo de Cancelación (Reembolso)</label>
+                                    <input type="text" id="notes_cancel" name="notes" placeholder="Ej: Dinero devuelto por solicitud de cliente" class="w-full text-xs rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 py-2.5 px-3">
+                                </div>
+                                <button type="submit" onclick="return confirm('¿Estás seguro de cancelar esta orden? Al haber sido pagada, el stock se devolverá al inventario automáticamente.')" class="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold text-sm transition-all active:scale-95">
+                                    Cancelar Pedido y Devolver Stock
+                                </button>
+                            </form>
                         @else
-                            <div class="flex items-center gap-2 text-emerald-600 mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                <span class="font-bold text-sm">Pedido Finalizado</span>
+                            <!-- Estado Finalizado / Cancelado -->
+                            <div class="flex items-center gap-2 {{ $order->status == 'completed' ? 'text-emerald-600' : 'text-red-600' }} mb-4">
+                                @if($order->status == 'completed')
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="font-bold text-sm">Pedido Completado</span>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="font-bold text-sm">Pedido Cancelado</span>
+                                @endif
                             </div>
+
+                            @if($order->status_notes)
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs text-slate-600 mb-4 leading-relaxed">
+                                    <strong class="text-slate-700 block mb-1">Observaciones / Detalles:</strong>
+                                    {{ $order->status_notes }}
+                                </div>
+                            @endif
+
                             <p class="text-slate-400 text-xs leading-relaxed">
                                 Este pedido ya fue procesado y no requiere más acciones.
                             </p>
                         @endif
                     </div>
+
+
 
                 </div>
 
