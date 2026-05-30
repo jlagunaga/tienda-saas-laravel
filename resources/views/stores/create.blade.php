@@ -13,13 +13,15 @@
                     <form method="POST" action="{{ route('stores.store') }}" class="max-w-md mx-auto">
                         @csrf
 
-                        <!-- Name -->
-                        <div>
-                            <x-input-label for="name" :value="__('Nombre de la Tienda')" />
-                            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Ej: Mi Tienda Increíble" />
-                            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-                            <p class="text-sm text-gray-500 mt-2">La URL de tu tienda se generará automáticamente.</p>
-                        </div>
+                         <!-- Name -->
+                         <div>
+                             <x-input-label for="name" :value="__('Nombre de la Tienda')" />
+                             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Ej: Mi Tienda Increíble" />
+                             <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                             <x-input-error :messages="$errors->get('slug')" class="mt-2" />
+                             <p class="text-sm text-gray-500 mt-2">La URL de tu tienda se generará automáticamente.</p>
+                         </div>
+
 
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('dashboard') }}" class="text-sm text-gray-600 hover:text-gray-900 underline mr-4">

@@ -44,6 +44,8 @@ class StoreController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:stores,slug',
+        ],[
+            'slug.unique' => 'El nombre de la tienda ya está registrado por otro vendedor. Por favor, elige un nombre diferente.',
         ]);
 
         // 3. Crear la tienda vinculada al usuario
