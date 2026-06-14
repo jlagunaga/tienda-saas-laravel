@@ -1,4 +1,5 @@
 <x-app-layout>
+<x-seller-store-header :store="$store" />
         <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-b border-gray-200">
@@ -19,6 +20,7 @@
                                         <th class="p-3 border-b font-semibold text-gray-700">Nombre Cliente</th>
                                         <th class="p-3 border-b font-semibold text-gray-700">Email Cliente</th>
                                         <th class="p-3 border-b font-semibold text-gray-700">Total</th>
+                                        <th class="p-3 border-b font-semibold text-gray-700">Tiempo de Espera</th> 
                                         <th class="p-3 border-b font-semibold text-gray-700">Estado</th>
                                         <th class="p-3 border-b font-semibold text-gray-700">Acciones</th>
                                     </tr>
@@ -29,17 +31,34 @@
                                             <td class="p-3 border-b text-gray-800">{{ $order->customer_name }}</td>
                                             <td class="p-3 border-b text-gray-500 text-sm">{{ $order->customer_email }}</td>
                                             <td class="p-3 border-b text-gray-500 text-sm">{{ $order->total }}</td>
+                                            <!-- NUEVA CELDA: Tiempo de espera con alerta de urgencia a partir de las 2 horas -->
+                                            <td class="p-3 border-b text-gray-500 text-sm">
+                                                <span class="font-medium">{{ $order->created_at->diffForHumans() }}</span>
+                                                @if($order->status == 'pending_payment' && $order->created_at->diffInDays() >= 1)
+                                                    <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-100 text-red-800 animate-pulse">
+                                                        ⚠️ URGENTE
+                                                    </span>
+                                                @endif
+                                            </td>
                                             <td class="p-3 border-b">
-                                                @if($order->status == 'pending')
-                                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                                                        Pendiente
+                                                @if($order->status == 'pending_payment')
+                                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                        Pendiente de Pago
+                                                    </span>
+                                                @elseif($order->status == 'paid')
+                                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                        Pagada
                                                     </span>
                                                 @elseif($order->status == 'completed')
-                                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-[10px] font-black uppercase tracking-wider">
                                                         Completado
                                                     </span>
+                                                @elseif($order->status == 'cancelled')
+                                                     <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                        Cancelado
+                                                    </span>
                                                 @else
-                                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-[10px] font-black uppercase tracking-wider">
                                                         {{ $order->status }}
                                                     </span>
                                                 @endif
@@ -55,6 +74,9 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-gray-100">
+                            {{ $orders->links() }}
                         </div>
                     @endif
                 </div>

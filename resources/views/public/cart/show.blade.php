@@ -12,6 +12,21 @@
                 </div>
             </div>
         @endif
+        @if($errors->any())
+            <div class="max-w-7xl mx-auto px-4 mt-4" 
+                x-data="{ show: true }" 
+                x-show="show" 
+                >
+                @foreach ($errors->all() as $error)
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative shadow-sm flex justify-between items-center">
+                    {{ $error }}
+                    <button @click="show = false" class="text-red-500 hover:text-red-700 font-bold text-xl leading-none">
+                        &times;
+                    </button>
+                </div>
+                @endforeach
+            </div>
+        @endif
     <div class="py-8 bg-gray-50/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row gap-6">
             <main class="flex-1">
@@ -23,6 +38,7 @@
                 <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     @forelse($products as $product)
                         <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 p-3 hover:shadow-lg transition duration-300 flex flex-col group">
+                            <a href="{{ route('public.store.product', ['store' => $store, 'product' => $product]) }}">
                             <div class="relative w-full h-40 overflow-hidden rounded-xl mb-3">
                                 @if($product->image_path)
                                     <img src="{{ asset('storage/' . $product->image_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -34,17 +50,30 @@
                                     </div>
                                 @endif
                             </div>
+                            </a>
                             <div class="flex-1 px-1">
-                                <h4 class="font-bold text-gray-800 text-sm line-clamp-1 group-hover:text-indigo-600 transition">{{ $product->name }}</h4>
+                                <a href="{{ route('public.store.product', ['store' => $store, 'product' => $product]) }}">
+                                    <h4 class="font-bold text-gray-800 text-sm line-clamp-1 group-hover:text-indigo-600 transition">{{ $product->name }}</h4>
+                                </a>
                                 <p class="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-8 text-pretty">{{ $product->description }}</p>
                             </div>
                             <div class="mt-4 flex flex-col gap-4 pt-3 border-t border-gray-50">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-base font-extrabold text-gray-900">${{ number_format($product->price, 2) }}</span>
-                                    
-                                    <!-- Selector de Cantidad -->
+                                @if($product->discount_percentage > 0)
+                                    <div class="flex flex-col">
+                                        <span class="text-xs text-gray-400 line-through">${{ number_format($product->price, 2) }}</span>
+                                        <span class="text-sm font-bold text-gray-900">
+                                            ${{ number_format($product->price * (1 - $product->discount_percentage / 100), 2) }}
+                                        </span>
+                                        <span class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded w-max mt-1 border border-red-200">
+                                            -{{ $product->discount_percentage }}% OFF
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="text-sm font-medium text-gray-900">${{ number_format($product->price, 2) }}</span>
+                                @endif
+                                @if($product->stock > 0)
                                     <div class="flex items-center bg-gray-100 rounded-lg p-1">
-                                        <!-- Botón Menos -->
                                         <form action="{{ route('public.cart.decrement', [$store, $product]) }}" method="post">
                                             @csrf
                                             <button type="submit" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-md transition text-gray-600">-</button>
@@ -52,12 +81,19 @@
 
                                         <span class="px-3 font-bold text-sm text-gray-800">{{ $product->quantity }}</span>
 
-                                        <!-- Botón Más (Reutilizamos la ruta de añadir) -->
                                         <form action="{{ route('public.cart.add', [$store, $product]) }}" method="post">
                                             @csrf
                                             <button type="submit" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-md transition text-gray-600">+</button>
                                         </form>
                                     </div>
+                                @else
+                                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 border border-rose-100 text-rose-500 rounded-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        <span class="text-[10px] font-black uppercase tracking-tight">Sin Stock</span>
+                                    </div>
+                                @endif
                                 </div>
 
                                 <!-- Botón Eliminar (Separado y discreto) -->

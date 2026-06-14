@@ -12,10 +12,17 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
+        'customer_id',
         'customer_name',
         'customer_email',
         'total',
         'status',
+        'notify_email',
+        'status_notes',
+    ];
+
+    protected $casts = [
+        'notify_email' => 'boolean', 
     ];
 
     public function store(): BelongsTo
@@ -26,5 +33,10 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

@@ -9,14 +9,34 @@ use App\Models\Product;
 class CartController extends Controller
 {
     //
-    public function add(Store $store, Product $product){
+    public function add(Store $store, Product $product,Request $request){
+        // filtro 1: valida si el stock general <=0
+        if($product->stock <= 0){
+            return back()->withErrors(["cart"=>"Este producto esta agotado"]);
+        }
+        
         $cartkey = "Cart_{$store->id}";
         $cart = session()->get($cartkey,[]);
+        $cantidad = $request->input('quantity', 1);
+        // calculamos la cantidad total del pedido
+        $catidadActual = isset($cart[$product->id]) ? $cart[$product->id]['quantity'] : 0;
+        $cantidadNueva = $catidadActual + $cantidad;
+
+        // filtro 2: limita a no comparar mas del stock actual
+        if($cantidadNueva > $product->stock){
+            return back()->withErrors(["cart"=>"No puedes agregar mas de este producto, stock actual: {$product->stock}"]);
+        }
+        // filtro 3: limite maximo por producto 5
+        if($cantidadNueva > 5){
+            return back()->withErrors(["cart"=>"No puedes agregar mas de 5 unidades de este producto"]);
+        }
+
+        // ctualizamos el carrito
         if(isset($cart[$product->id])){
-            $cart[$product->id]['quantity']++;
+            $cart[$product->id]['quantity'] += $cantidad;
         }else{
             $cart[$product->id] = [
-                'quantity' => 1
+                'quantity' => $cantidad
             ];
         }
         session()->put($cartkey,$cart);
@@ -37,7 +57,12 @@ class CartController extends Controller
             
             foreach($products as $product){
                 $product->quantity = $cart[$product->id]['quantity'];
-                $total += $product->price * $product->quantity;
+                /* cambio para aplicar descuento */
+                $precioFinal = $product->price;
+                if($product->discount_percentage > 0){
+                    $precioFinal = $product->price * (1 - $product->discount_percentage / 100);
+                }
+                $total += $precioFinal * $product->quantity;
             }
         }
         

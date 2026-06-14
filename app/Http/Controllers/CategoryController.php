@@ -18,7 +18,7 @@ class CategoryController extends Controller
      */
     public function index(Store $store){
     // 1. Buscamos las categorías que tengan el store_id de esta tienda
-        $categories = $store->categories;
+        $categories = $store->categories()->paginate(10);
 
     // 2. Cargamos la vista de listado
     return view('categories.index', compact('store','categories'));
