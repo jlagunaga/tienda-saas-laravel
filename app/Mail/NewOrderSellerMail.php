@@ -10,6 +10,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Order;
 use App\Models\Store;
+use Illuminate\Mail\Mailables\Address;
 
 class NewOrderSellerMail extends Mailable
 {
@@ -33,6 +34,7 @@ class NewOrderSellerMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new Address(config('mail.from.address'),config('app.name')),
             subject: '¡Nuevo pedido recibido en ' . $this->store->name . '(#'. $this->order->id .')',
         );
     }

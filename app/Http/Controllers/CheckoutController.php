@@ -146,13 +146,16 @@ class CheckoutController extends Controller
                 'price' => $precioFinal //  precio final con descuento
             ]);
         }
+        // Limpiar el carrito de inmediato (Evita duplicados si el flujo posterior falla)
+        session()->forget($cartkey);
+
         // notificar la orden al cliente q acepto notificaciones
         if($order->notify_email){
             try {
                 // enviar notificacion al cliente
                 Mail::to($order->customer_email)->send(new OrderConfirmationMail($order->load('items'), $store));
-            } catch (\Exception $e) {
-                \Log::error('Error al enviar correo de confirmación: ' . $e->getMessage());
+            } catch (\Throwable $th) {
+                \Log::error('Error al enviar correo de confirmación: ' . $th->getMessage());
             }
         }
         // notificar la orden al dueño de la tienda
@@ -160,16 +163,11 @@ class CheckoutController extends Controller
             try {
                 // enviar notificacion al dueño de la tienda
                 Mail::to($store->contact_email)->send(new NewOrderSellerMail($order, $store));
-            } catch (\Exception $e) {
-                \Log::error('Error al enviar correo de notificación: ' . $e->getMessage());
+            } catch (\Throwable $th) {
+                \Log::error('Error al enviar correo de notificación: ' . $th->getMessage());
             }
         }   
                      
-
-
-        // limpiar carrito
-        session()->forget($cartkey);
-        // volver a la pagina de la tienda
         // redirigir a la pagina de resumen de compra
         return redirect()->route('public.checkout.success', ['store' => $store, 'order' => $order]);
     }

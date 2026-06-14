@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Customer;
 use App\Models\Store;
+use Illuminate\Validation\Rule;
 
 
 class CustomerAuthController extends Controller
@@ -22,7 +23,11 @@ class CustomerAuthController extends Controller
         // validacion
         $request->validate([
             'name' => ['required','string','max:255'],
-            'email' => ['required','string','email','lowercase','max:255','unique:users,email'],
+            //Valida la unicidad en la tabla 'customers' filtrando por la tienda actual
+            'email' => ['required','string','email','lowercase','max:255',
+                        Rule::unique('customers','email')->where(function ($query) use ($store) {
+                            return $query->where('store_id', $store->id);  
+                        })],
             'password' => ['required','string','min:8','confirmed',Password::defaults()],
             'phone' => ['nullable','string','max:255'],
             'address' => ['nullable','string','max:255'],

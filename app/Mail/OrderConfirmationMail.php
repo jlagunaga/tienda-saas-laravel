@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Address;
 use App\Models\Order;
 use App\Models\Store;
 
@@ -33,6 +34,8 @@ class OrderConfirmationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new Address(config('mail.from.address'), $this->store->name),
+            
             subject: '¡Tu pedido #'.$this->order->id.' fue recibido!',
         );
     }
